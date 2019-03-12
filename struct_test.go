@@ -12,6 +12,7 @@ func ExamplePrintln() {
 		B string
 		C c
 		D
+		E c
 	}{
 		A: 1, B: "", C: c{C: 3}, D: D{D: 4},
 	}

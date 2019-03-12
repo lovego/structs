@@ -16,6 +16,11 @@ func Println(structs ...interface{}) {
 }
 
 func Sprint(strct interface{}) string {
+	if stringer, ok := strct.(interface {
+		String() string
+	}); ok {
+		return stringer.String()
+	}
 	structV := reflect.ValueOf(strct)
 	if structV.Kind() == reflect.Ptr {
 		if structV.IsNil() {
@@ -32,7 +37,9 @@ func Sprint(strct interface{}) string {
 	typ := structV.Type()
 	for i := 0; i < structV.NumField(); i++ {
 		if name := typ.Field(i).Name; name[0] >= 'A' && name[0] <= 'Z' {
-			if value := structV.Field(i); value.Interface() != reflect.Zero(value.Type()).Interface() {
+			if value := structV.Field(i); !reflect.DeepEqual(
+				value.Interface(), reflect.Zero(value.Type()).Interface(),
+			) {
 				slice = append(slice, fmt.Sprintf("%v:%v", name, Sprint(value.Interface())))
 			}
 		}
