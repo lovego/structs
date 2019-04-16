@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+var stringerType = reflect.TypeOf((*fmt.Stringer)(nil)).Elem()
+
 // Println print a struct without zero value fields.
 func Println(structs ...interface{}) {
 	var result = make([]interface{}, len(structs))
@@ -16,10 +18,11 @@ func Println(structs ...interface{}) {
 }
 
 func Sprint(strct interface{}) string {
-	if stringer, ok := strct.(interface {
-		String() string
-	}); ok {
-		return stringer.String()
+	if stringer, ok := strct.(fmt.Stringer); ok {
+		rv := reflect.ValueOf(strct)
+		if !(rv.Kind() == reflect.Ptr && rv.IsNil() && rv.Type().Elem().Implements(stringerType)) {
+			return stringer.String()
+		}
 	}
 	structV := reflect.ValueOf(strct)
 	if structV.Kind() == reflect.Ptr {
