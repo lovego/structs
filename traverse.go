@@ -8,9 +8,17 @@ func TraverseExportedFields(typ reflect.Type, fn func(field reflect.StructField)
 	}
 	for i := 0; i < typ.NumField(); i++ {
 		field := typ.Field(i)
-		if field.Anonymous && field.Type.Kind() == reflect.Struct {
-			TraverseExportedFields(field.Type, fn)
-		} else if field.Name[0] >= 'A' && field.Name[0] <= 'Z' {
+		if field.Anonymous {
+			fieldTyp := field.Type
+			if fieldTyp.Kind() == reflect.Ptr {
+				fieldTyp = fieldTyp.Elem()
+			}
+			if fieldTyp.Kind() == reflect.Struct {
+				TraverseExportedFields(fieldTyp, fn)
+				continue
+			}
+		}
+		if field.Name[0] >= 'A' && field.Name[0] <= 'Z' {
 			fn(field)
 		}
 	}
