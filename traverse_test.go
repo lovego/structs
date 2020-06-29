@@ -23,7 +23,7 @@ func ExampleTraverseExportedFields() {
 		TestT4
 		testT5
 	}
-	TraverseExportedFields(reflect.TypeOf(TestT{}), func(f reflect.StructField) {
+	TraverseType(reflect.TypeOf(TestT{}), func(f reflect.StructField) {
 		fmt.Println(f.Name)
 	})
 	// Output:
