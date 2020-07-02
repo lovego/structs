@@ -5,7 +5,7 @@ import (
 	"reflect"
 )
 
-func ExampleTraverseExportedFields() {
+func ExampleTraverseType() {
 	type TestT2 struct {
 		T2Name string
 	}
