@@ -4,7 +4,7 @@ import "reflect"
 
 func Traverse(val reflect.Value, fn func(
 	val reflect.Value, field reflect.StructField,
-)) {
+) bool) bool {
 	typ := val.Type()
 	if typ.Kind() == reflect.Ptr {
 		typ = typ.Elem()
@@ -27,11 +27,16 @@ func Traverse(val reflect.Value, fn func(
 		}
 
 		if field.Anonymous && fieldTyp.Kind() == reflect.Struct {
-			Traverse(fieldVal, fn)
+			if Traverse(fieldVal, fn) {
+				return true // stop traverse
+			}
 		} else if field.Name[0] >= 'A' && field.Name[0] <= 'Z' {
-			fn(fieldVal, field)
+			if fn(fieldVal, field) {
+				return true // stop traverse
+			}
 		}
 	}
+	return false
 }
 
 func TraverseType(typ reflect.Type, fn func(field reflect.StructField)) {
