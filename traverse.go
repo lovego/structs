@@ -17,7 +17,11 @@ func Traverse(val reflect.Value, fn func(
 		if fieldTyp.Kind() == reflect.Ptr {
 			fieldTyp = fieldTyp.Elem()
 			if fieldVal.IsNil() {
-				fieldVal.Set(reflect.New(fieldTyp))
+				if fieldVal.CanSet() {
+					fieldVal.Set(reflect.New(fieldTyp))
+				} else {
+					continue
+				}
 			}
 			fieldVal = fieldVal.Elem()
 		}

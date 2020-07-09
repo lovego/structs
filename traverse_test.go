@@ -5,6 +5,47 @@ import (
 	"reflect"
 )
 
+func ExampleTraverse() {
+	type TestT2 struct {
+		T2Name string
+	}
+	type testT3 struct {
+		T3Name string
+	}
+	type TestT4 int
+	type testT5 string
+	type TestT6 struct {
+		T6Name string
+	}
+
+	type TestT struct {
+		Name        string
+		notExported int
+		TestT2
+		*testT3
+		TestT4
+		testT5
+		TestT6
+	}
+
+	value := &TestT{}
+	Traverse(reflect.ValueOf(value), func(v reflect.Value, f reflect.StructField) {
+		if !v.CanSet() {
+			fmt.Println(f)
+			return
+		}
+		switch v.Kind() {
+		case reflect.Int:
+			v.SetInt(8)
+		case reflect.String:
+			v.SetString(f.Name)
+		}
+	})
+	fmt.Printf("%+v\n", *value)
+	// Output:
+	// {Name:Name notExported:0 TestT2:{T2Name:T2Name} testT3:<nil> TestT4:8 testT5: TestT6:{T6Name:T6Name}}
+}
+
 func ExampleTraverseType() {
 	type TestT2 struct {
 		T2Name string
