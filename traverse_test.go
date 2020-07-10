@@ -31,10 +31,10 @@ func ExampleTraverse() {
 	}
 
 	value := &TestT{}
-	Traverse(reflect.ValueOf(value), func(v reflect.Value, f reflect.StructField) bool {
+	Traverse(reflect.ValueOf(value), true, func(v reflect.Value, f reflect.StructField) bool {
 		if !v.CanSet() {
 			fmt.Println(f)
-			return false
+			return true
 		}
 		switch v.Kind() {
 		case reflect.Int:
@@ -43,9 +43,9 @@ func ExampleTraverse() {
 			v.SetString(f.Name)
 		case reflect.Bool:
 			v.SetBool(true)
-			return true
+			return false
 		}
-		return false
+		return true
 	})
 	fmt.Printf("%+v\n", *value)
 	// Output:

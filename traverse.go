@@ -2,7 +2,9 @@ package structs
 
 import "reflect"
 
-func Traverse(val reflect.Value, fn func(
+// Traverse traverses a reflect.Value
+// convertNilPtr:  convert nil pointer to non-nil or not.
+func Traverse(val reflect.Value, convertNilPtr bool, fn func(
 	val reflect.Value, field reflect.StructField,
 ) bool) bool {
 	typ := val.Type()
@@ -17,7 +19,7 @@ func Traverse(val reflect.Value, fn func(
 		if fieldTyp.Kind() == reflect.Ptr {
 			fieldTyp = fieldTyp.Elem()
 			if fieldVal.IsNil() {
-				if fieldVal.CanSet() {
+				if convertNilPtr && fieldVal.CanSet() {
 					fieldVal.Set(reflect.New(fieldTyp))
 				} else {
 					continue
@@ -27,18 +29,19 @@ func Traverse(val reflect.Value, fn func(
 		}
 
 		if field.Anonymous && fieldTyp.Kind() == reflect.Struct {
-			if Traverse(fieldVal, fn) {
-				return true // stop traverse
+			if !Traverse(fieldVal, convertNilPtr, fn) {
+				return false // stop traverse
 			}
 		} else if field.Name[0] >= 'A' && field.Name[0] <= 'Z' {
-			if fn(fieldVal, field) {
-				return true // stop traverse
+			if !fn(fieldVal, field) {
+				return false // stop traverse
 			}
 		}
 	}
-	return false
+	return true // go on traverse
 }
 
+// TraverseType traverses a reflect.Type
 func TraverseType(typ reflect.Type, fn func(field reflect.StructField)) {
 	if typ.Kind() == reflect.Ptr {
 		typ = typ.Elem()
