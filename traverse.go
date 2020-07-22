@@ -4,6 +4,8 @@ import "reflect"
 
 // Traverse traverses a reflect.Value
 // convertNilPtr:  convert nil pointer to non-nil or not.
+// nil pointer to anonymous unexported struct fields are not traversed by Traverse,
+// but pointer to anonymous unexported struct fields are always traversed TraverseType.
 func Traverse(val reflect.Value, convertNilPtr bool, fn func(
 	val reflect.Value, field reflect.StructField,
 ) bool) bool {

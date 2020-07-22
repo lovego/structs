@@ -32,7 +32,7 @@ func ExampleTraverse() {
 	// T4
 	// T5
 	// Stop
-	// &{T1:T1 T2:{T2:T2} t3:{T3:T3} T4:8 T5:&{T5:T5} Stop:true AfterStop: notExported:0}
+	// &{T1:T1 T2:{T2:T2} t3:{T3:T3} T4:8 T5:&{T5:T5} t6:<nil> Stop:true AfterStop: notExported:0}
 }
 
 func ExampleTraverseType() {
@@ -45,8 +45,9 @@ func ExampleTraverseType() {
 	// T3 [2 0]
 	// T4 [3]
 	// T5 [4 0]
-	// Stop [5]
-	// AfterStop [6]
+	// T6 [5 0]
+	// Stop [6]
+	// AfterStop [7]
 }
 
 func getTestValue() interface{} {
@@ -60,6 +61,9 @@ func getTestValue() interface{} {
 	type T5 struct {
 		T5 string
 	}
+	type t6 struct {
+		T6 string
+	}
 
 	return &struct {
 		T1 string
@@ -67,6 +71,7 @@ func getTestValue() interface{} {
 		t3
 		T4
 		*T5
+		*t6
 		Stop        bool
 		AfterStop   string
 		notExported int
