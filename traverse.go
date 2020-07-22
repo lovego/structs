@@ -42,7 +42,7 @@ func Traverse(val reflect.Value, convertNilPtr bool, fn func(
 }
 
 // TraverseType traverses a reflect.Type
-func TraverseType(typ reflect.Type, fn func(field reflect.StructField)) {
+func TraverseType(typ reflect.Type, fn func(field reflect.StructField), index ...int) {
 	if typ.Kind() == reflect.Ptr {
 		typ = typ.Elem()
 	}
@@ -54,11 +54,12 @@ func TraverseType(typ reflect.Type, fn func(field reflect.StructField)) {
 				fieldTyp = fieldTyp.Elem()
 			}
 			if fieldTyp.Kind() == reflect.Struct {
-				TraverseType(fieldTyp, fn)
+				TraverseType(fieldTyp, fn, append(index, field.Index...)...)
 				continue
 			}
 		}
 		if field.Name[0] >= 'A' && field.Name[0] <= 'Z' {
+			field.Index = append(index, field.Index...)
 			fn(field)
 		}
 	}
