@@ -3,7 +3,7 @@ package structs
 import "reflect"
 
 // Traverse traverses a reflect.Value
-// convertNilPtr:  convert nil pointer to non-nil or not.
+// convertNilPtr:  convert anonymous nil struct pointer to non-nil or not.
 // nil pointer to anonymous unexported struct fields are not traversed by Traverse,
 // but pointer to anonymous unexported struct fields are always traversed TraverseType.
 func Traverse(val reflect.Value, convertNilPtr bool, fn func(
@@ -16,25 +16,29 @@ func Traverse(val reflect.Value, convertNilPtr bool, fn func(
 	}
 	for i := 0; i < typ.NumField(); i++ {
 		field := typ.Field(i)
-		fieldTyp := field.Type
 		fieldVal := val.FieldByIndex(field.Index)
-		if fieldTyp.Kind() == reflect.Ptr {
-			fieldTyp = fieldTyp.Elem()
-			if fieldVal.IsNil() {
-				if convertNilPtr && fieldVal.CanSet() {
-					fieldVal.Set(reflect.New(fieldTyp))
-				} else {
-					continue
-				}
-			}
-			fieldVal = fieldVal.Elem()
-		}
 
-		if field.Anonymous && fieldTyp.Kind() == reflect.Struct {
-			if !Traverse(fieldVal, convertNilPtr, fn) {
-				return false // stop traverse
+		if field.Anonymous {
+			fieldTyp := field.Type
+			if fieldTyp.Kind() == reflect.Ptr && fieldTyp.Elem().Kind() == reflect.Struct {
+				fieldTyp = fieldTyp.Elem()
+				if fieldVal.IsNil() {
+					if convertNilPtr && fieldVal.CanSet() {
+						fieldVal.Set(reflect.New(fieldTyp))
+					} else {
+						continue
+					}
+				}
+				fieldVal = fieldVal.Elem()
 			}
-		} else if field.Name[0] >= 'A' && field.Name[0] <= 'Z' {
+			if fieldTyp.Kind() == reflect.Struct {
+				if !Traverse(fieldVal, convertNilPtr, fn) {
+					return false // stop traverse
+				}
+				continue
+			}
+		}
+		if field.Name[0] >= 'A' && field.Name[0] <= 'Z' {
 			if !fn(fieldVal, field) {
 				return false // stop traverse
 			}
