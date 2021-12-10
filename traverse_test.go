@@ -8,7 +8,7 @@ import (
 
 func ExampleTraverse() {
 	value := getTestValue()
-	Traverse(reflect.ValueOf(value), true, func(v reflect.Value, f reflect.StructField) bool {
+	Traverse(reflect.ValueOf(value), true, nil, func(v reflect.Value, f reflect.StructField) bool {
 		fmt.Println(f.Name)
 		switch v.Kind() {
 		case reflect.Int:
@@ -36,7 +36,7 @@ func ExampleTraverse() {
 }
 
 func ExampleTraverseType() {
-	TraverseType(reflect.TypeOf(getTestValue()), func(f reflect.StructField) {
+	TraverseType(reflect.TypeOf(getTestValue()), nil, func(f reflect.StructField) {
 		fmt.Println(f.Name, f.Index)
 	})
 	// Output:

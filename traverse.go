@@ -5,10 +5,12 @@ import "reflect"
 // Traverse traverses a reflect.Value
 // convertNilPtr:  convert anonymous nil struct pointer to non-nil or not.
 // nil pointer to anonymous unexported struct fields are not traversed by Traverse,
-// but pointer to anonymous unexported struct fields are always traversed by TraverseType.
-func Traverse(val reflect.Value, convertNilPtr bool, fn func(
-	val reflect.Value, field reflect.StructField,
-) bool) bool {
+func Traverse(
+	val reflect.Value,
+	convertNilPtr bool,
+	skip func(val reflect.Value, field reflect.StructField) bool,
+	fn func(val reflect.Value, field reflect.StructField) bool,
+) bool {
 	typ := val.Type()
 	if typ.Kind() == reflect.Ptr {
 		typ = typ.Elem()
@@ -17,6 +19,9 @@ func Traverse(val reflect.Value, convertNilPtr bool, fn func(
 	for i := 0; i < typ.NumField(); i++ {
 		field := typ.Field(i)
 		fieldVal := val.FieldByIndex(field.Index)
+		if skip != nil && skip(fieldVal, field) {
+			continue
+		}
 
 		if field.Anonymous {
 			fieldTyp := field.Type
@@ -32,7 +37,7 @@ func Traverse(val reflect.Value, convertNilPtr bool, fn func(
 				fieldVal = fieldVal.Elem()
 			}
 			if fieldTyp.Kind() == reflect.Struct {
-				if !Traverse(fieldVal, convertNilPtr, fn) {
+				if !Traverse(fieldVal, convertNilPtr, skip, fn) {
 					return false // stop traverse
 				}
 				continue
@@ -48,19 +53,28 @@ func Traverse(val reflect.Value, convertNilPtr bool, fn func(
 }
 
 // TraverseType traverses a reflect.Type
-func TraverseType(typ reflect.Type, fn func(field reflect.StructField), index ...int) {
+// but pointer to anonymous unexported struct fields are always traversed by TraverseType.
+func TraverseType(
+	typ reflect.Type,
+	skip func(field reflect.StructField) bool,
+	fn func(field reflect.StructField),
+	index ...int,
+) {
 	if typ.Kind() == reflect.Ptr {
 		typ = typ.Elem()
 	}
 	for i := 0; i < typ.NumField(); i++ {
 		field := typ.Field(i)
+		if skip != nil && skip(field) {
+			continue
+		}
 		if field.Anonymous {
 			fieldTyp := field.Type
 			if fieldTyp.Kind() == reflect.Ptr {
 				fieldTyp = fieldTyp.Elem()
 			}
 			if fieldTyp.Kind() == reflect.Struct {
-				TraverseType(fieldTyp, fn, append(index, field.Index...)...)
+				TraverseType(fieldTyp, skip, fn, append(index, field.Index...)...)
 				continue
 			}
 		}
